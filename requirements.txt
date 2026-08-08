@@ -1,0 +1,7 @@
+# Pinned to the versions used to produce the results in the paper.
+# Looser bounds will almost certainly work; these are what was tested.
+numpy==1.26.4
+scipy==1.11.4
+pandas==2.1.4
+networkx==3.1
+matplotlib==3.8.2

@@ -1,0 +1,19 @@
+# Derived data — regenerate with preprocess_ppg_dalia_v5.py
+*.npz
+*.csv.gz
+
+# Raw dataset — download from UCI, do not commit (2.7 GB, separately licensed)
+PPG_FieldStudy/
+ppg+dalia/
+*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

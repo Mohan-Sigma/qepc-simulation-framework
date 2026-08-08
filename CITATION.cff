@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying paper."
+title: "QEPC Simulation Framework"
+abstract: >-
+  Reproducibility package for the QEPC deferred-evaluation probabilistic
+  computing architecture: PPG-DaLiA workload harness, inference policies,
+  and hardware energy model.
+authors:
+  - family-names: Manoharan
+    given-names: Mohan Raj
+    orcid: "https://orcid.org/0009-0002-0790-761X"
+version: "1.0.0"
+license: MIT
+preferred-citation:
+  type: article
+  title: >-
+    QEPC: Deferred-Evaluation Probabilistic Computing for Wearable AI —
+    Architecture, Measured Evaluation, and Design Limits
+  authors:
+    - family-names: Manoharan
+      given-names: Mohan Raj
+      orcid: "https://orcid.org/0009-0002-0790-761X"
+  journal: >-
+    IEEE Journal on Exploratory Solid-State Computational Devices and Circuits
+  year: 2026
