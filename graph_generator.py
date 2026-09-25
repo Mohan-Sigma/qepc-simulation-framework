@@ -9,7 +9,7 @@ Supported topologies
   - chain          : Linear Bayesian network (N nodes, sequential dependencies)
   - erdos_renyi    : Dense random DAG (Erdős–Rényi, edge probability p)
   - ar_sensor_fusion : AR-glasses sensor fusion (4 observed + 8 latent nodes)
-  - tsp            : Travelling Salesman Problem cost graph (N cities)
+  - tsp            : Traveling Salesman Problem cost graph (N cities)
 
 All graphs are returned as a GraphModel dataclass containing:
   - nodes     : list of node names
@@ -330,7 +330,7 @@ def _build_ar_sensor_fusion(N_states: int, seed: int) -> GraphModel:
 
 def _build_tsp(N: int, seed: int) -> GraphModel:
     """
-    Travelling Salesman Problem instance with N cities.
+    Traveling Salesman Problem instance with N cities.
 
     The 'graph' here is a complete cost matrix rather than a Bayesian network.
     City positions are drawn uniformly from [0, 1)^2. The cost matrix D[i][j]

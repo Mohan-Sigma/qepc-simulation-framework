@@ -9,13 +9,13 @@ authors:
   - family-names: Manoharan
     given-names: Mohan Raj
     orcid: "https://orcid.org/0009-0002-0790-761X"
-version: "1.0.0"
+version: "1.1.0"
 license: MIT
 preferred-citation:
   type: article
   title: >-
     QEPC: Deferred-Evaluation Probabilistic Computing for Wearable AI —
-    Architecture, Measured Evaluation, and Design Limits
+    Architecture, Simulation Study, and Design Limits
   authors:
     - family-names: Manoharan
       given-names: Mohan Raj

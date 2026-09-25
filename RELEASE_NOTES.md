@@ -1,14 +1,34 @@
-# Release v1.0.0 — JxCDC submission
+# Release v1.1.0 — JxCDC accepted revision
 
 Reproducibility package for:
 
 > **QEPC: Deferred-Evaluation Probabilistic Computing for Wearable AI —
-> Architecture, Measured Evaluation, and Design Limits**
+> Architecture, Simulation Study, and Design Limits**
 > Mohan Raj Manoharan
 > IEEE Journal on Exploratory Solid-State Computational Devices and Circuits
 
 This tag is the exact state of the code used to produce every table and figure
-in the submitted manuscript. Later commits may change; this release will not.
+in the accepted manuscript. Later commits may change; this release will not.
+
+## What changed since v1.0.0
+
+Two corrections, both raised during the final review round.
+
+1. **Erasure-command dispatch is now priced.** Resetting a probability mass
+   function is executed in Layer 1 but commanded by the controller in Layer 4,
+   so the command word crosses all three bonded interfaces. `energy_model_v2.py`
+   now charges this as `E_erase_cmd = w_cmd x E_tsv_bit x n_bond_interfaces`
+   (16 bit x 50 fJ x 3 = 2.4 pJ per query, 0.03% of the envelope). Both the
+   command width and the interface count are parameters, so the figure can be
+   checked or varied. The only reported number this moves is the H < 0.50 row
+   of Table V, 3.30 -> 3.31 nJ; every ratio is unchanged because the baseline
+   pays the same dispatch.
+
+2. **`energy_tables.py` described the five-layer stack.** Its layer table still
+   listed the removed 22 nm adiabatic tier and carried thermal-resistance
+   values that play no part in the headroom calculation. The table is now the
+   four-layer stack totalling 95 mm2, the thermal column is gone, and headroom
+   is reported to two significant figures as `N_max = P_env / E_q`.
 
 ---
 
@@ -107,9 +127,11 @@ If your run is correct, `ppg_benchmark.py --loso` reports:
 
 \* not matched comparisons — these use observations later than the estimate point
 
-`energy_tables.py` should report 1.47× at H<0.30 rising to 5.66× at H<0.60,
-a 744× gap between volatile and non-volatile retention, and a compute share of
-1.3% of per-query energy.
+`energy_tables.py` should report 1.47x at H<0.30 rising to 5.66x at H<0.60,
+a 744x gap between volatile and non-volatile retention, a compute share of
+1.3% of per-query energy, and an erasure-command dispatch of 2.40 pJ (0.033%).
+Per-query energy is 10.65 nJ for the baseline and 7.27, 4.29, 3.31 and 1.88 nJ
+at H<0.30, 0.40, 0.50 and 0.60 respectively.
 
 Small differences in the last decimal place across NumPy versions are normal.
 Differences in the first decimal place are not — check that all 15 subjects
@@ -123,7 +145,7 @@ loaded (`64,697 windows` on the first line of output).
   from UCI; `.gitignore` blocks the raw pickles and derived `.npz` from being
   committed by accident.
 - **Circuit or device simulation.** This is an operation-accounting model. It
-  counts operations and prices them from published device characterisations.
+  counts operations and prices them from published device characterizations.
   Section 15 of supporting document SD-1 states what it cannot establish.
 
 ---
@@ -149,7 +171,7 @@ loaded (`64,697 windows` on the first line of output).
 Python 3.10 or later. Pinned versions in `requirements.txt` are those used to
 produce the published numbers; looser bounds will almost certainly work.
 
-## Licence
+## License
 
 MIT. If you use this software, please cite the accompanying paper — see
 `CITATION.cff`.

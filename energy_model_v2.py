@@ -16,9 +16,11 @@ TERMS INCLUDED (v1 -> v2)
     v1: sMTJ collapse, RRAM CPT access, adiabatic erasure, SRAM leakage
     v2: + PMF read/write with peripheral overhead (sense amps, decoders,
           write drivers, which typically double raw bit-cell energy)
-        + inter-layer TSV / hybrid-bond transfer energy
+        + inter-layer TSV / hybrid-bond transfer energy, including the
+          dispatch of the erasure command from the L4 controller to L1
+          across all three bonded interfaces
         + neuromorphic controller sequencing overhead per query
-        + state-retention energy across the inter-query interval, modelled
+        + state-retention energy across the inter-query interval, modeled
           for BOTH volatile SRAM and non-volatile eMRAM retention
 
 RETENTION IS THE DECIDING TERM
@@ -88,11 +90,23 @@ class HW:
 
     n_layer_hops: int = 2
     """Layer traversals per node update: the PMF moves between the state
-       store (L1), the sampling engine (L3), and the correlation engine (L4)."""
+       store (L1), the sampling engine (L2), and the correlation engine (L3)."""
+
+    n_bond_interfaces: int = 3
+    """Bonded interfaces in the four-layer stack (L1-L2, L2-L3, L3-L4). An
+       erasure command issued by the controller in L4 and executed in L1
+       crosses all three. R3.3 asked whether this dispatch is priced; it is,
+       via E_erase_cmd below."""
+
+    w_cmd: int = 16
+    """Width of the erasure / slot-retire command word [bits]: opcode plus a
+       slot address over retain_depth slots. Erasure is commanded once per
+       query, when the retained history window advances and one slot retires
+       -- not once per activated node."""
 
     # ── Controller (NEW in v2) ────────────────────────────────────────────────
     E_ctrl_query: float = 100e-12
-    """Neuromorphic controller (L5) sequencing energy per query [J]:
+    """Neuromorphic controller (L4) sequencing energy per query [J]:
        traversal scheduling, entropy evaluation, collapse decision.
        Range 20e-12 - 500e-12. R1.4 flagged this omission."""
 
@@ -123,7 +137,7 @@ class HW:
     """Effective transition-matrix bandwidth. The Gaussian drift kernel is
        negligible beyond +/-3 sigma, so the RRAM performs a banded rather
        than dense matrix-vector product: n_states x band_width MACs instead
-       of n_states^2. This is an architectural optimisation, stated so a
+       of n_states^2. This is an architectural optimization, stated so a
        reviewer can check it."""
 
     tau_query: float = 2.0
@@ -138,6 +152,8 @@ class HW:
         self.E_sram_access_bit = self.E_sram_bit * self.periph_factor
         self.E_erase_node = ((1.0 - self.eta_adiabatic)
                              * self.C_gate * self.V_DD ** 2 * self.pmf_bits)
+        # R3.3: TSV cost of dispatching the erasure command L4 -> L1
+        self.E_erase_cmd = self.w_cmd * self.E_tsv_bit * self.n_bond_interfaces
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -153,6 +169,7 @@ class Breakdown:
     E_tsv:        float          # J, inter-layer transfer
     E_ctrl:       float          # J, controller
     E_erase:      float          # J, adiabatic erasure
+    E_erase_cmd:  float          # J, TSV dispatch of the erasure command
     E_retain:     float          # J, state retention over tau
     total:        float          # J
 
@@ -167,6 +184,7 @@ class Breakdown:
             f"{self.E_memory*1e9:.2f}",
             f"{self.E_tsv*1e9:.2f}",
             f"{self.E_ctrl*1e9:.2f}",
+            f"{self.E_erase_cmd*1e9:.4f}",
             f"{self.E_retain*1e9:.2f}",
             f"{self.total*1e9:.2f}",
         ]
@@ -255,13 +273,15 @@ class EnergyModelV2:
             E_compute = S * per["compute"],
             E_memory  = S * per["memory"],
             E_tsv     = S * per["tsv"],
-            E_ctrl    = S * per["ctrl"] + hw.E_ctrl_query,
-            E_erase   = S * per["erase"],
-            E_retain  = self._retention(n_retained),
-            total     = (S * (per["compute"] + per["memory"] + per["tsv"]
-                              + per["ctrl"] + per["erase"])
-                         + hw.E_ctrl_query
-                         + self._retention(n_retained)),
+            E_ctrl      = S * per["ctrl"] + hw.E_ctrl_query,
+            E_erase     = S * per["erase"],
+            E_erase_cmd = hw.E_erase_cmd,
+            E_retain    = self._retention(n_retained),
+            total       = (S * (per["compute"] + per["memory"] + per["tsv"]
+                                + per["ctrl"] + per["erase"])
+                           + hw.E_ctrl_query
+                           + hw.E_erase_cmd
+                           + self._retention(n_retained)),
         )
 
     def from_distribution(self, S_samples: np.ndarray,

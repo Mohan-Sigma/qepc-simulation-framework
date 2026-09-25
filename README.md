@@ -3,7 +3,7 @@
 Reproducibility package for:
 
 > **QEPC: Deferred-Evaluation Probabilistic Computing for Wearable AI —
-> Architecture, Measured Evaluation, and Design Limits**
+> Architecture, Simulation Study, and Design Limits**
 > Mohan Raj Manoharan
 > IEEE Journal on Exploratory Solid-State Computational Devices and Circuits
 
@@ -19,7 +19,7 @@ This is an **operation-accounting model**, not a circuit or device simulation.
 For each algorithm and workload it counts operations of each type — state-store
 reads and writes, transition applications, collapse events, inter-layer
 transfers, controller invocations — and prices each using published device
-characterisations. It does not simulate physics.
+characterizations. It does not simulate physics.
 
 Transistor-level simulation at 22 nm and 40 nm requires foundry process design
 kits under non-disclosure, and results produced that way could not be
@@ -160,7 +160,7 @@ of per-query energy.
 | `baseline_bp.py` | Belief-propagation and simulated-annealing baselines |
 
 `graph_generator.py`, `qepc_inference.py` and `baseline_bp.py` support the
-general-graph experiments discussed in Section VII, including the travelling
+general-graph experiments discussed in Section VII, including the traveling
 salesman benchmark that produced the negative erasure result. They are not
 required to reproduce the manuscript's headline tables.
 
@@ -175,7 +175,7 @@ so peak extraction discarded the answer outright in nearly a quarter of cases,
 and no inference over the retained set could recover it.
 
 Retaining the full spectrum resolves this. The true bin carries median
-normalised magnitude 0.876 and exceeds 0.2 in 97.0% of windows, but is the
+normalized magnitude 0.876 and exceeds 0.2 in 97.0% of windows, but is the
 global maximum only 22.8% of the time. The task is peak selection, not peak
 detection — which is what temporal probabilistic inference supplies.
 

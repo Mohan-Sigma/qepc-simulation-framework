@@ -79,14 +79,14 @@ class TargetedBP:
 
     Algorithm
     ---------
-    1. Initialise all messages µ_{i→j}(x_j) = uniform distribution.
+    1. Initialize all messages µ_{i→j}(x_j) = uniform distribution.
     2. For K rounds:
          For each node i in S (in topological order):
-           For each neighbour j of i in S:
+           For each neighbor j of i in S:
              Compute outgoing message:
                µ_{i→j}(x_j) = Σ_{x_i} P(x_i | pa(i)) × Π_{k ≠ j} µ_{k→i}(x_i)
                (RRAM CPT lookup: N_states rows = full CPT matrix)
-             Write result to SRAM (1 write per neighbour)
+             Write result to SRAM (1 write per neighbor)
     3. Compute beliefs at query nodes:
          b(x_i) ∝ P(x_i | pa(i)) × Π_k µ_{k→i}(x_i)
 
@@ -124,7 +124,7 @@ class TargetedBP:
         parents  = graph.parents
         children = graph.children
 
-        # ── Message initialisation ────────────────────────────────────────────
+        # ── Message initialization ────────────────────────────────────────────
         # µ[(i,j)] = message from node i to node j, shape (N_s,)
         messages: Dict[Tuple[str, str], np.ndarray] = {}
         for n in S:
@@ -155,7 +155,7 @@ class TargetedBP:
                             messages[(node, c)] = msg_out.copy()
                     continue
 
-                # Collect incoming messages from all neighbours in S
+                # Collect incoming messages from all neighbors in S
                 incoming: Dict[str, np.ndarray] = {}
                 for p in parents[node]:
                     if p in S_set:

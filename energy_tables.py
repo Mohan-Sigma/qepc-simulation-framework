@@ -8,7 +8,7 @@ Generates:
   Table V, energy columns   - per-query energy and ratio versus the baseline
   Section VI-F              - retention technology comparison
   Section VI-G              - per-query energy composition and sensitivity
-  Table III                 - provisioning and thermal headroom
+  Table III                 - provisioning and energy-envelope headroom
 
 USAGE
 -----
@@ -28,11 +28,9 @@ from energy_model_v2 import HW, EnergyModelV2
 
 W_BASELINE = 16.0
 CADENCE_HZ = 0.5
-LAYERS = {'L5 Cerebellum (4 nm)': 5, 'L4 Cortex (40 nm RRAM)': 50,
-          'L3 Thalamus (7 nm)': 10, 'L2 Hippocampus (22 nm)': 20,
-          'L1 Pons (22 nm eMRAM)': 30}
-RTH = {'L4 Cortex (40 nm RRAM)': 1.2, 'L3 Thalamus (7 nm)': 1.0,
-       'L2 Hippocampus (22 nm)': 1.0, 'L1 Pons (22 nm eMRAM)': 0.8}
+# Four-layer stack; the 22 nm adiabatic erasure tier was removed in R2.
+LAYERS = {'L4 Cerebellum (4 nm)': 5, 'L3 Cortex (40 nm RRAM)': 50,
+          'L2 Thalamus (7 nm)': 10, 'L1 Pons (22 nm eMRAM)': 30}
 EMRAM_CELL_UM2 = 0.046      # TSMC 22ULL 1-bit cell
 
 
@@ -85,10 +83,13 @@ def retention_comparison(S: Dict[str, np.ndarray], hw: HW, headline=0.30):
 
 def composition(q):
     print('\nSECTION VI-G  per-query energy composition')
-    for lbl, v in (('State-store access', q.E_memory), ('Inter-layer TSV', q.E_tsv),
+    for lbl, v in (('State-store access', q.E_memory),
+                   ('Inter-layer TSV', q.E_tsv + q.E_erase_cmd),
                    ('Controller', q.E_ctrl), ('Compute', q.E_compute),
                    ('Adiabatic erasure', q.E_erase)):
         print(f'  {lbl:<24}{100*v/q.total:>7.2f}%')
+    print(f'    of which erasure-command TSV dispatch: '
+          f'{q.E_erase_cmd*1e12:.2f} pJ ({100*q.E_erase_cmd/q.total:.3f}%)')
 
 
 def sensitivity(S: Dict[str, np.ndarray], hw: HW, headline=0.30):
@@ -121,22 +122,22 @@ def table_iii(q, hw: HW):
     bits = hw.retain_depth * hw.pmf_bits
     used_mm2 = bits * EMRAM_CELL_UM2 / 1e6
 
-    print('\nTABLE III  provisioning and thermal headroom')
+    print('\nTABLE III  provisioning and headroom')
     print(f'  active inference power : {P*1e9:.2f} nW  ({E*1e9:.2f} nJ/query '
           f'at {CADENCE_HZ} Hz)')
     print(f'  power density          : {P/(total_area*1e-2):.2e} W/cm2')
     print(f'  retained state         : {bits:,} bits = {bits/8/1024:.1f} kB '
           f'= {used_mm2:.5f} mm2')
-    print(f'  L1 utilisation         : {100*used_mm2/LAYERS["L1 Pons (22 nm eMRAM)"]:.4f}%')
-    print(f'\n  {"Layer":<26}{"area":>8}{"R_th":>7}{"dT":>14}')
+    print(f'  L1 utilization         : {100*used_mm2/LAYERS["L1 Pons (22 nm eMRAM)"]:.4f}%')
+    print(f'\n  {"Layer":<26}{"area":>8}')
     for name, area in LAYERS.items():
-        r = RTH.get(name)
-        dt = f'{P*r/area:.2e} C' if r else '-- (heat sink)'
-        print(f'  {name:<26}{area:>6} mm2{(f"{r:.1f}" if r else "--"):>7}{dt:>14}')
+        print(f'  {name:<26}{area:>6} mm2')
+    # Headroom is set by the energy envelope alone: N_max = P_env / E_q.
+    # No thermal quantity enters. Reported to 2 s.f.; the model supports no more.
     print(f'\n  headroom  {"envelope":>10}{"queries/s":>14}{"channels":>14}')
     for mw in (1, 10, 100):
         n = mw * 1e-3 / E
-        print(f'            {mw:>8} mW{n:>14,.0f}{n/CADENCE_HZ:>14,.0f}')
+        print(f'            {mw:>8} mW{n:>14.1e}{n/CADENCE_HZ:>14.1e}')
 
 
 def main() -> int:

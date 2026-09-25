@@ -7,11 +7,11 @@ architecture. Reproduces Table V and Figs. 1-3 of the manuscript.
 METHOD
 ------
 Each 8 s window is represented by its magnitude spectrum over 0.6-3.5 Hz,
-discretised into B = 96 bins of 0.030 Hz (~1.8 BPM). Inference is a
+discretized into B = 96 bins of 0.030 Hz (~1.8 BPM). Inference is a
 first-order hidden Markov chain:
 
     hidden state  z_t = heart-rate bin
-    observation   o_t = normalised PPG spectrum
+    observation   o_t = normalized PPG spectrum
 
     emission    p(o_t | z_t = i)      ~  [S_t(f_i)]^alpha
     transition  p(z_t = i | z_{t-1}=j) ~  exp[-(f_i - f_j)^2 / 2 sigma^2]
@@ -20,7 +20,7 @@ Note that candidate peak extraction is NOT used. An earlier formulation kept
 only the top-3 spectral peaks per window; the true heart rate fell within
 5 BPM of a retained peak in just 76.6% of windows, so extraction discarded
 the answer outright in nearly a quarter of cases. Retaining the full spectrum
-resolves this: the true bin carries median normalised magnitude 0.877 and
+resolves this: the true bin carries median normalized magnitude 0.877 and
 exceeds 0.2 in 97.4% of windows, but is the global maximum only 21% of the
 time. The task is peak selection, not peak detection.
 
@@ -76,8 +76,8 @@ THRESHOLDS = (0.30, 0.40, 0.50, 0.60)
 @dataclass
 class Dataset:
     hr: np.ndarray          # (N,)   ground-truth heart rate, BPM
-    spec: np.ndarray        # (N, B) normalised PPG magnitude spectrum
-    freqs: np.ndarray       # (B,)   bin centre frequencies, Hz
+    spec: np.ndarray        # (N, B) normalized PPG magnitude spectrum
+    freqs: np.ndarray       # (B,)   bin center frequencies, Hz
     subject: np.ndarray     # (N,)   subject label
     activity: np.ndarray    # (N,)
 
@@ -103,14 +103,14 @@ def load(npz_path: str) -> Dataset:
 # ─── Model ───────────────────────────────────────────────────────────────────
 
 def emission(spec: np.ndarray, alpha: float) -> np.ndarray:
-    """Row-normalised emission matrix, (T, B)."""
+    """Row-normalized emission matrix, (T, B)."""
     E = np.maximum(spec, 1e-12) ** alpha
     return E / E.sum(axis=1, keepdims=True)
 
 
 def transition(freqs: np.ndarray, sigma: float) -> np.ndarray:
     """
-    Gaussian drift kernel over heart-rate bins, (B, B), row-normalised.
+    Gaussian drift kernel over heart-rate bins, (B, B), row-normalized.
 
     In hardware this is applied as a banded operator: the kernel is negligible
     beyond +/-3 sigma, so only B*W multiply-accumulates are required rather
@@ -178,7 +178,7 @@ def policy_deferred(E: np.ndarray, A: np.ndarray, freqs: np.ndarray,
     """
     QEPC deferred evaluation.
 
-    The belief starts from the local emission alone. While its normalised
+    The belief starts from the local emission alone. While its normalized
     entropy exceeds `threshold`, one earlier window is recruited and its
     evidence propagated forward. Collapse occurs when the posterior resolves
     or the depth limit is reached, so |S| is data-dependent.
@@ -424,7 +424,7 @@ def report_pmf_width(ds: Dataset, sigma=0.04, alpha=2.0):
         err = np.abs(np.concatenate(est_all) - np.concatenate(hr_all))
         print(f'  {nb:>7}{nb*16:>11}{err.mean():>8.2f}'
               f'{np.median(err):>9.2f}{100*(err<=5).mean():>9.1f}%')
-    print('  note: the 4-state row is an artefact of 43.5 BPM bins, not a '
+    print('  note: the 4-state row is an artifact of 43.5 BPM bins, not a '
           'usable operating point (see SD-1 Section 4.2)')
 
 

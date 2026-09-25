@@ -8,7 +8,7 @@ WHAT CHANGED FROM v4, AND WHY
 -----------------------------
 v4 applied accelerometer spectral subtraction before peak picking. Measured
 on S1+S2 this made things worse -- candidate coverage fell from 85.0% (raw)
-to 80.4% (cleaned). The cause was a bug: each spectrum was normalised to unit
+to 80.4% (cleaned). The cause was a bug: each spectrum was normalized to unit
 maximum independently, so the accelerometer spectrum peaked at 1.0 whether
 the subject was sprinting or sitting still. Subtracting it removed a similar
 amount of energy regardless of actual motion, gouging the pulse peak in quiet
@@ -35,9 +35,9 @@ OUTPUT
     subject      (T,)      subject label
     window_idx   (T,)
     activity     (T,)
-    spec_ppg     (T, 96)   normalised PPG magnitude spectrum   [float16]
-    spec_acc     (T, 96)   normalised accelerometer spectrum   [float16]
-    freqs        (96,)     bin centre frequencies, Hz
+    spec_ppg     (T, 96)   normalized PPG magnitude spectrum   [float16]
+    spec_acc     (T, 96)   normalized accelerometer spectrum   [float16]
+    freqs        (96,)     bin center frequencies, Hz
 
 Pass --ppg-only to omit spec_acc if the file is still too large to upload.
 
@@ -133,7 +133,7 @@ def bandpass(x: np.ndarray, fs: int, order: int = 4) -> np.ndarray:
 
 
 def band_spectrum(x: np.ndarray, fs: int, edges: np.ndarray) -> np.ndarray:
-    """Magnitude spectrum on the shared grid, normalised to unit maximum."""
+    """Magnitude spectrum on the shared grid, normalized to unit maximum."""
     if len(x) < 8:
         return np.zeros(N_BINS)
     x = np.asarray(x, float)
@@ -232,7 +232,7 @@ def main() -> int:
     wanted = [s for s in wanted if s in available]
 
     edges = np.linspace(BAND_LO_HZ, BAND_HI_HZ, N_BINS + 1)
-    centres = 0.5 * (edges[:-1] + edges[1:])
+    centers = 0.5 * (edges[:-1] + edges[1:])
 
     parts = []
     for subj in wanted:
@@ -249,7 +249,7 @@ def main() -> int:
         return 1
 
     merged = {k: np.concatenate([p[k] for p in parts], axis=0) for k in parts[0]}
-    merged["freqs"] = centres.astype(np.float32)
+    merged["freqs"] = centers.astype(np.float32)
 
     out_path = os.path.abspath(args.out)
     np.savez_compressed(out_path, **merged)
@@ -257,7 +257,7 @@ def main() -> int:
 
     hr = merged["hr_true"]
     P = merged["spec_ppg"].astype(float)
-    naive = centres[np.argmax(P, axis=1)] * 60
+    naive = centers[np.argmax(P, axis=1)] * 60
     mae_naive = float(np.abs(naive - hr).mean())
 
     print(f"\nWrote {out_path}")

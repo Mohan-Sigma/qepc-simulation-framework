@@ -302,7 +302,7 @@ class QEPCInference:
                 tvd = self._compute_tvd(counts, ground_truth, query, sweep - self.K + 1)
                 tvd_history.append(tvd)
 
-        # Normalise counts → marginal estimates
+        # Normalize counts → marginal estimates
         marginal: Dict[str, np.ndarray] = {}
         for qn in query:
             total = counts[qn].sum()
